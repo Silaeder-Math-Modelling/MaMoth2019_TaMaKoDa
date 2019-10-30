@@ -75,13 +75,16 @@ void solve(){
                 //cout << "I2 AM HERERERERE!!!" << endl;
                 for(tmp_it_p = it_p; tmp_it_p != p.end(); tmp_it_p++){
                     //cout << "FINDING ITEM FOR NETING IN PASSIVE" << endl;
-                    if((((*it_a).second.first.first - 0.15) <= (*tmp_it_p).second.first.second) && (((*it_a).second.first.second + 0.15) >= (*tmp_it_p).second.first.first)){
+                    if((((*it_a).second.first.first - 0.15) <= (*tmp_it_p).second.first.second) && (((*it_a).second.first.second + 0.15) >= (*tmp_it_p).second.first.first)\
+                        && (((*it_a).second.second.first - 30 <= (*tmp_it_p).second.second.first) && ((*it_a).second.second.second + 30 >= (*tmp_it_p).second.second.second))){
                         //cout << "NETTING IN PROGRESS" << endl;
                         tmp.first.first = (*it_a).first.first - (*tmp_it_p).first.first;
                         tmp.first.second = (*it_a).first.second;
                         link.push_back({(*it_a).first.second, (*tmp_it_p).first.second});
                         tmp.second.first.first = max((*it_a).second.first.first, (*tmp_it_p).second.first.first);
                         tmp.second.first.second = min((*it_a).second.first.second, (*tmp_it_p).second.first.second);
+                        tmp.second.second.first = max((*it_a).second.second.first, (*tmp_it_p).second.second.first);
+                        tmp.second.second.second = min((*it_a).second.second.second, (*tmp_it_p).second.second.second);
                         a.erase(it_a);
                         a.insert(tmp);
                         p.erase(tmp_it_p);
@@ -104,13 +107,16 @@ void solve(){
                 //cout << "I3 AM HERERERERE!!!" << endl;
                 for(tmp_it_a = it_a; tmp_it_a != a.end(); tmp_it_a++){
                     //cout << "FINDING ELEMENT IN ACTIVE FOR NETTING" << endl;
-                    if((((*it_p).second.first.first - 0.15) <= (*tmp_it_a).second.first.second) && (((*it_p).second.first.second + 0.15) >= (*tmp_it_a).second.first.first)){
+                    if((((*it_p).second.first.first - 0.15) <= (*tmp_it_a).second.first.second) && (((*it_p).second.first.second + 0.15) >= (*tmp_it_a).second.first.first)\
+                       && (((*it_p).second.second.first - 30 <= (*tmp_it_a).second.second.first) && ((*it_p).second.second.second + 30 >= (*tmp_it_a).second.second.second))){
                         //cout << "ACTIVE ELEMENT WAS FOUND .. NETTING IN PROGRESS" << endl;
                         tmp.first.first = (*it_p).first.first - (*tmp_it_a).first.first;
                         tmp.first.second = (*it_p).first.second;
                         link.push_back({(*it_p).first.second, (*tmp_it_a).first.second});
                         tmp.second.first.first = max((*it_p).second.first.first, (*tmp_it_a).second.first.first);
                         tmp.second.first.second = min((*it_p).second.first.second, (*tmp_it_a).second.first.second);
+                        tmp.second.second.first = max((*it_p).second.second.first, (*tmp_it_a).second.second.first);
+                        tmp.second.second.second = min((*it_p).second.second.second, (*tmp_it_a).second.second.second);
                         p.erase(it_p);
                         p.insert(tmp);
                         a.erase(tmp_it_a);
