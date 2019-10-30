@@ -205,7 +205,7 @@ int main()
         //cout << (*tmp_it_p).first << endl;
         passive += (*tmp_it_p).first.first;
     }
-    cout << "RWA: "<< 0.05 * (active + passive) + 0.2 * (fabs(active - passive)) << endl;
+    cout << "RWA: "<< 0.1 * (active + passive) + 0.4 * (fabs(active - passive)) << endl;
     cout << "AMOUNT OF GROUPS: " << amount_of_groups << endl;
     for(int i = 0; i < n; i++){
         cout << i << ": " << group[i] << '\n';
