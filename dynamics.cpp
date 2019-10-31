@@ -119,7 +119,7 @@ public:
     {
         cerr << fixed << this->message << ": " << (double)(clock() - this->timer) / CLOCKS_PER_SEC << '\n';
     }
-private:
+public:
     string message;
     clock_t timer;
 };
@@ -161,9 +161,10 @@ inline double solve(vector<Contract> &contracts)
         // Building up the dynamic (loop architecture by tanya-kta):
         for(int loop_i = 1; loop_i < contracts.size(); ++loop_i)
         {
-            if(loop_i % 100 == 0)
+            if(loop_i % 30 == 0)
             {
                 cerr << "loop_i equals " << loop_i << endl;
+                cerr << (double)(clock() - t.timer) / CLOCKS_PER_SEC << " seconds passed since beginning" << endl;
             }
             for(int loop_j = loop_i; loop_j < contracts.size(); ++loop_j)
             {
