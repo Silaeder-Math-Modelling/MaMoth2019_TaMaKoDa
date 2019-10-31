@@ -15,19 +15,6 @@ ostream &operator<<(ostream &out, const pair<T1, T2> &p)
 }
 
 template<class T>
-ostream &operator<<(ostream &out, const vector<T> &v)
-{
-    if(v.empty())
-        return out;
-    out << v[0];
-    for(int i = 1; i < v.size(); ++i)
-    {
-        out << '\n' << v[i];
-    }
-    return out;
-}
-
-template<class T>
 ostream &operator<<(ostream &out, const set<T> &v)
 {
     if(v.empty())
@@ -177,22 +164,51 @@ Fragmentation get_dp(int i, int j)
 double solve()
 {
     sort(contracts.begin(), contracts.end(), [](Contract a, Contract b) { return a.second < b.second; });
-
-    dp.assign(contracts.size(), vector<Fragmentation>(contracts.size()));
-    for(int i = 0; i < contracts.size(); ++i)
+    vector<Contract> all_contracts = move(contracts);
+    vector<vector<Contract>> devided_contracts = {{all_contracts[0]}};
+    for(int i = 1; i < all_contracts.size(); ++i)
     {
-        for(int j = 0; j < contracts.size(); ++j)
+        if(gt(abs(all_contracts[i].second - devided_contracts.back().back().second), 0.15))
         {
-            dp[i][j] = {};
+            devided_contracts.push_back({});
         }
-    }
-    for(int i = 0; i < contracts.size(); ++i)
-    {
-        dp[i][i] = {{i}};
+        devided_contracts.back().push_back(all_contracts[i]);
     }
 
-    auto ans = get_dp(0, contracts.size() - 1);
-    cout << ans << '\n' << endl;
+    Fragmentation ans(0);
+    int sum = 0;
+
+    for(int _i = 0; _i < devided_contracts.size(); ++_i)
+    {
+        contracts = move(devided_contracts[_i]);
+
+        dp.assign(contracts.size(), vector<Fragmentation>(contracts.size()));
+        for(int i = 0; i < contracts.size(); ++i)
+        {
+            for(int j = 0; j < contracts.size(); ++j)
+            {
+                dp[i][j] = {};
+            }
+        }
+        for(int i = 0; i < contracts.size(); ++i)
+        {
+            dp[i][i] = {{i}};
+        }
+
+        Fragmentation part_ans = get_dp(0, contracts.size() - 1);
+        for(const set<int> &group : part_ans)
+        {
+            ans.emplace_back();
+            for(int i : group)
+            {
+                ans.back().insert(i + sum);
+            }
+        }
+
+        devided_contracts[_i] = move(contracts);
+        sum += devided_contracts[_i].size();
+    }
+    contracts = move(all_contracts);
     return rwa(ans);
 }
 
@@ -204,6 +220,7 @@ int main()
     //contracts = {{100, 0.1}, {100, 0.15}, {-30, 0.25}, {-69, 0.3}};
     //contracts = {{100, 0.1}, {-54, 0.25}, {54, 0.4}};
     //contracts = {{100, 0.1}, {-59, 0.15}, {-110, 0.25}, {69, 0.3}};
+    //contracts = {{100, 0.1}, {-50, 0.15}, {-110, 0.25}, {60, 0.3}, {100, 0.5}, {-50, 0.65},  {50, 0.8}};
     contracts = get_credit_deposit_rate("dannye_mamont_1mes.csv");
     cout << solve() << endl;
 }
