@@ -142,9 +142,13 @@ inline double solve(vector<Contract> &contracts)
     vector<vector<Fragmentation>> global_dp;
     global_dp.assign(all_contracts.size(), vector<Fragmentation>(all_contracts.size()));
 
-    for(auto &devided_contract : devided_contracts)
+    for(int _i = 0; _i < devided_contracts.size(); ++_i)
     {
+        Timer t("Devided contract " + to_string(_i));
         vector<vector<Fragmentation>> dp;
+
+        auto &devided_contract = devided_contracts[_i];
+        cerr << "Begin contract " << _i << " of length " << devided_contract.size() << endl;
 
         contracts = move(devided_contract);
 
@@ -157,6 +161,10 @@ inline double solve(vector<Contract> &contracts)
         // Building up the dynamic (loop architecture by tanya-kta):
         for(int loop_i = 1; loop_i < contracts.size(); ++loop_i)
         {
+            if(loop_i % 100 == 0)
+            {
+                cerr << "loop_i equals " << loop_i << endl;
+            }
             for(int loop_j = loop_i; loop_j < contracts.size(); ++loop_j)
             {
                 // We are going to calculate dp[loop_j - loop_i][loop_j], so:
@@ -262,6 +270,6 @@ int main()
     //contracts = {{100, 0.1}, {-50, 0.15}, {-110, 0.25}, {60, 0.3}, {100, 0.5}, {-50, 0.65},  {50, 0.8}};
     //contracts = {{100, 0.1}, {-50, 0.15}, {-110, 0.25}, {60, 0.3}, {100, 0.5}, {-50, 0.65}, {50, 0.8}, {100, 1}, {-40, 1.1}, {-80, 1.15}, {10, 2}};
     contracts = get_credit_deposit_rate("dannye_mamont_1mes.csv");
-    contracts.resize(100);
+    Timer t("Full solution");
     cout << fixed << solve(contracts) << endl;
 }
