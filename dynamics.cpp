@@ -1,8 +1,11 @@
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <set>
 #include <algorithm>
 #include "assert.h"
+#include "time.h"
+#include <string>
 
 #include "data_getter.cpp"
 using namespace std;
@@ -65,7 +68,7 @@ bool ne(double a, double b)
 
 using Contract = pair<double, double>;
 // first is value (номинал), second is rate
-using Fragmentation = vector<set<int>>;
+using Fragmentation = vector<vector<int>>;
 
 vector<Contract> contracts;
 vector<vector<Fragmentation>> dp;
@@ -74,7 +77,7 @@ double rwa(const Fragmentation &groups)
 {
     double main_passive, main_active;
     main_passive = main_active = 0;
-    for(const set<int> &group : groups)
+    for(const vector<int> &group : groups)
     {
         double group_passive, group_active;
         group_passive = group_active = 0;
@@ -104,13 +107,32 @@ vector<set<T>> super_union(const vector<vector<set<T>>> &v)
     return ans;
 }
 
-Fragmentation get_dp(int i, int j)
+class Timer
+{
+public:
+    Timer(string message)
+    {
+        this->timer = clock();
+        this->message = move(message);
+    }
+
+    ~Timer()
+    {
+        cerr << fixed << this->message << ": " << (double)(clock() - this->timer) / CLOCKS_PER_SEC << '\n';
+    }
+private:
+    string message;
+    clock_t timer;
+};
+
+inline Fragmentation get_dp(int i, int j)
 {
     if(!dp[i][j].empty())
         return dp[i][j];
     assert(i != j);
 
-    set<Fragmentation> possible_fragmentations;
+    Fragmentation best_fragmentation;
+    double best_rwa = numeric_limits<double>::max();
     for(int snake1 = i; snake1 <= j; ++snake1)
     {
         for(int snake2 = snake1; snake2 <= j; ++snake2)
@@ -132,33 +154,33 @@ Fragmentation get_dp(int i, int j)
             for(Fragmentation &groups : got_groups)
             {
                 groups.push_back({j});
-                possible_fragmentations.insert(super_union(got_groups));
+                double cur_rwa = rwa(groups);
+                if((eq(cur_rwa, best_rwa) && (best_fragmentation.size() < groups.size())) || (lt(cur_rwa, best_rwa)))
+                {
+                    best_rwa = cur_rwa;
+                    best_fragmentation = groups;
+                }
                 groups.pop_back();
-                for(set<int> &group : groups)
+                for(vector<int> &group : groups)
                 {
                     double smallest_rate = contracts[*group.begin()].second;
                     if(le(contracts[j].second - smallest_rate, 0.15))
                     {
-                        group.insert(j);
-                        possible_fragmentations.insert(super_union(got_groups));
-                        group.erase(j);
+                        group.push_back(j);
+                        double cur_rwa = rwa(groups);
+                        if((eq(cur_rwa, best_rwa) && (best_fragmentation.size() < groups.size())) || (lt(cur_rwa, best_rwa)))
+                        {
+                            best_rwa = cur_rwa;
+                            best_fragmentation = groups;
+                        }
+                        group.pop_back();
                     }
                 }
             }
         }
     }
-    auto best_it = possible_fragmentations.begin();
-    double best_rwa = rwa(*best_it);
-    for(auto it = possible_fragmentations.begin(); it != possible_fragmentations.end(); ++it)
-    {
-        double cur_rwa = rwa(*it);
-        if((eq(cur_rwa, best_rwa) && (best_it->size() < it->size())) || (lt(cur_rwa, best_rwa)))
-        {
-            best_rwa = cur_rwa;
-            best_it = it;
-        }
-    }
-    return *best_it;
+    dp[i][j] = move(best_fragmentation);
+    return dp[i][j];
 }
 
 double solve()
@@ -170,7 +192,7 @@ double solve()
     {
         if(gt(abs(all_contracts[i].second - devided_contracts.back().back().second), 0.15))
         {
-            devided_contracts.push_back({});
+            devided_contracts.emplace_back();
         }
         devided_contracts.back().push_back(all_contracts[i]);
     }
@@ -180,6 +202,7 @@ double solve()
 
     for(int _i = 0; _i < devided_contracts.size(); ++_i)
     {
+        Timer c("Plank " + to_string(_i));
         contracts = move(devided_contracts[_i]);
 
         dp.assign(contracts.size(), vector<Fragmentation>(contracts.size()));
@@ -187,21 +210,20 @@ double solve()
         {
             for(int j = 0; j < contracts.size(); ++j)
             {
-                dp[i][j] = {};
+                if(i != j)
+                    dp[i][j] = {};
+                else
+                    dp[i][j] = {{i}};
             }
-        }
-        for(int i = 0; i < contracts.size(); ++i)
-        {
-            dp[i][i] = {{i}};
         }
 
         Fragmentation part_ans = get_dp(0, contracts.size() - 1);
-        for(const set<int> &group : part_ans)
+        for(const vector<int> &group : part_ans)
         {
-            ans.emplace_back();
-            for(int i : group)
+            ans.emplace_back(group.size());
+            for(int &i : ans.back())
             {
-                ans.back().insert(i + sum);
+                i += sum;
             }
         }
 
@@ -222,6 +244,9 @@ int main()
     //contracts = {{100, 0.1}, {-59, 0.15}, {-110, 0.25}, {69, 0.3}};
     //contracts = {{100, 0.1}, {-50, 0.15}, {-110, 0.25}, {60, 0.3}, {100, 0.5}, {-50, 0.65},  {50, 0.8}};
     contracts = get_credit_deposit_rate("dannye_mamont_1mes.csv");
-    cout << solve() << endl;
+    contracts.resize(100);
+    {
+        Timer t1("Full solution time");
+        cout << solve() << endl;
+    }
 }
-
